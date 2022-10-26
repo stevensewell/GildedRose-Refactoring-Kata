@@ -1,69 +1,33 @@
-export class Item {
-  name: string;
-  sellIn: number;
-  quality: number;
-
-  constructor(name, sellIn, quality) {
-    this.name = name;
-    this.sellIn = sellIn;
-    this.quality = quality;
-  }
-}
+import { Quality } from '@/quality';
+import { Item } from '@/item';
+import { agedItem, backstagePassesItem, conjuredItem, legendaryItem, normalItem } from '@/strategies';
 
 export class GildedRose {
-  items: Array<Item>;
+  items: Array<[Item, Quality]>;
 
-  constructor(items = [] as Array<Item>) {
+  constructor(items = [] as Array<[Item, Quality]>) {
     this.items = items;
   }
 
-  updateQuality() {
-    for (let i = 0; i < this.items.length; i++) {
-      if (this.items[i].name != 'Aged Brie' && this.items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-        if (this.items[i].quality > 0) {
-          if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-            this.items[i].quality = this.items[i].quality - 1
-          }
-        }
-      } else {
-        if (this.items[i].quality < 50) {
-          this.items[i].quality = this.items[i].quality + 1
-          if (this.items[i].name == 'Backstage passes to a TAFKAL80ETC concert') {
-            if (this.items[i].sellIn < 11) {
-              if (this.items[i].quality < 50) {
-                this.items[i].quality = this.items[i].quality + 1
-              }
-            }
-            if (this.items[i].sellIn < 6) {
-              if (this.items[i].quality < 50) {
-                this.items[i].quality = this.items[i].quality + 1
-              }
-            }
-          }
-        }
-      }
-      if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-        this.items[i].sellIn = this.items[i].sellIn - 1;
-      }
-      if (this.items[i].sellIn < 0) {
-        if (this.items[i].name != 'Aged Brie') {
-          if (this.items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-            if (this.items[i].quality > 0) {
-              if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-                this.items[i].quality = this.items[i].quality - 1
-              }
-            }
-          } else {
-            this.items[i].quality = this.items[i].quality - this.items[i].quality
-          }
-        } else {
-          if (this.items[i].quality < 50) {
-            this.items[i].quality = this.items[i].quality + 1
-          }
-        }
-      }
-    }
+  updateQuality(): Array<[Item, Quality]> {
+    return this.items = this.items.map(([item, quality]) => {
+      const newItem = this.handleItem(item, quality);
+      return [newItem, quality];
+    });
+  }
 
-    return this.items;
+  private handleItem(item: Item, quality: Quality): Item {
+    switch (quality) {
+      case Quality.Aged:
+        return agedItem(item);
+      case Quality.BackstagePasses:
+        return backstagePassesItem(item);
+      case Quality.Conjured:
+        return conjuredItem(item);
+      case Quality.Legendary:
+        return legendaryItem(item);
+      default:
+        return normalItem(item);
+    }
   }
 }
